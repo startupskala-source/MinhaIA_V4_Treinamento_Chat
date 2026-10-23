@@ -9,6 +9,7 @@ from conversation_store import ConversationStore
 from document_store import DocumentStore, chunk_text
 from import_wikipedia import clean_wikitext
 from knowledge import KnowledgeBase
+from learning_store import LearningStore, extract_fact
 from storage import UsageStore
 from tokenizer import BPETokenizer
 
@@ -84,6 +85,18 @@ class ConversationStoreTests(unittest.TestCase):
             self.assertEqual(store.history("browser-1"), [("ola", "Ola! Como posso ajudar?")])
             self.assertEqual(store.entries("browser-1")[0]["role"], "user")
             store.close()
+
+
+class LearningStoreTests(unittest.TestCase):
+    def test_remembers_a_fact_once(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = LearningStore(Path(directory) / "learning.db")
+            self.assertTrue(store.remember("browser-1", "O projeto usa Python."))
+            self.assertFalse(store.remember("browser-2", "O projeto usa Python."))
+            store.close()
+
+    def test_extracts_teaching_command_without_losing_first_letter(self) -> None:
+        self.assertEqual(extract_fact("/ensinar Meu nome e Zeta."), "Meu nome e Zeta.")
 
 
 class WikipediaImportTests(unittest.TestCase):

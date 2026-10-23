@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -7,7 +8,9 @@ from pydantic import BaseModel
 from chat import load_model, respond
 from conversation_store import ConversationStore
 from document_store import DocumentStore
+from github_publisher import GitHubPublisher
 from knowledge import KnowledgeBase
+from learning_store import LearningStore, extract_fact
 from tokenizer import BPETokenizer
 
 ROOT = Path(__file__).parent
@@ -19,6 +22,8 @@ model = None
 tokenizer = BPETokenizer.train(DATA_PATH.read_text(encoding="utf-8"))
 documents = None
 conversations = ConversationStore(ROOT / "storage" / "conversations.db")
+learning = LearningStore(ROOT / "storage" / "learning.db")
+publisher = GitHubPublisher()
 
 
 class ChatMessage(BaseModel):
@@ -32,9 +37,24 @@ def load_runtime() -> None:
     checkpoint = ROOT / "checkpoints" / "best.pt"
     if checkpoint.exists():
         model, tokenizer = load_model()
-    database = ROOT / "data" / "knowledge.db"
-    if database.exists():
-        documents = DocumentStore(database)
+    documents = DocumentStore(ROOT / "data" / "knowledge.db")
+    load_committed_memories()
+
+
+def load_committed_memories() -> None:
+    for path in (ROOT / "data" / "learned").glob("*.jsonl"):
+        source = f"learned:{path.name}"
+        if documents.has_source(source):
+            continue
+        facts = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                fact = json.loads(line).get("fact", "")
+            except json.JSONDecodeError:
+                continue
+            if fact:
+                facts.append((fact, source))
+        documents.add_chunks(facts)
 
 
 @app.on_event("shutdown")
@@ -42,6 +62,7 @@ def close_runtime() -> None:
     if documents is not None:
         documents.connection.close()
     conversations.close()
+    learning.close()
 
 
 @app.get("/")
@@ -61,14 +82,44 @@ def chat(message: ChatMessage) -> dict[str, str]:
         raise HTTPException(status_code=400, detail="Envie uma pergunta antes de continuar.")
 
     previous_turns = conversations.history(message.session_id)
-    match = knowledge.find(question)
-    if match:
-        answer, source = match[0], "base de conhecimento"
+    fact = extract_fact(question)
+    if fact is not None:
+        answer, source = teach(message.session_id, fact)
     else:
-        passages = documents.search(question, limit=3) if documents is not None else []
-        answer, source = answer_from_documents(question, passages, previous_turns)
+        passages = documents.search(question, limit=5) if documents is not None else []
+        learned_passages = [
+            passage
+            for passage in passages
+            if str(passage["source"]).startswith(("memory:", "learned:"))
+        ]
+        match = knowledge.find(question)
+        if learned_passages:
+            remembered_fact = str(learned_passages[0]["content"])
+            answer = f"Eu me lembro: {remembered_fact}"
+            source = f"memoria ensinada: {learned_passages[0]['source']}"
+        elif match:
+            answer, source = match[0], "base de conhecimento"
+        else:
+            answer, source = answer_from_documents(question, passages, previous_turns)
     conversations.add_turn(message.session_id, question, answer)
     return {"answer": answer, "source": source, "session_id": message.session_id}
+
+
+def teach(session_id: str, fact: str) -> tuple[str, str]:
+    try:
+        is_new = learning.remember(session_id, fact)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    if not is_new:
+        return "Eu ja tinha essa informacao na minha memoria.", "memoria local"
+    documents.add_chunks([(fact, f"memory:{session_id}")])
+    try:
+        published_url = publisher.publish_fact(fact, session_id)
+    except Exception:
+        published_url = None
+    if published_url:
+        return "Aprendi e sincronizei esta memoria com o GitHub.", "memoria + GitHub"
+    return "Aprendi esta informacao na memoria local.", "memoria local"
 
 
 def answer_from_documents(

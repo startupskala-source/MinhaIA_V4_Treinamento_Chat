@@ -40,13 +40,13 @@
   <main>
     <header><span class="eyebrow">Projeto independente / V4</span><span class="status">local online</span></header>
     <h1>Minha<em>IA</em><br>fala daqui.</h1>
-    <p class="intro">Uma IA local, treinada com dados editaveis. Pergunte sobre os assuntos presentes na base e acompanhe o crescimento dela a cada novo treinamento.</p>
+    <p class="intro">Uma IA local, treinada com dados editaveis. Para ensinar algo novo, envie <strong>/ensinar seu fato aqui</strong>. Pergunte sobre os assuntos presentes na base e acompanhe o crescimento dela.</p>
     <section class="chat" aria-label="Conversa com MinhaIA">
       <div class="chat-head"><span>CANAL / CONHECIMENTO LOCAL</span><span>v4.0</span></div>
       <div id="messages" aria-live="polite"><div class="message assistant">Ola. Fui treinada com uma base local. Em que posso ajudar?</div></div>
       <form id="form"><input id="prompt" placeholder="Escreva sua pergunta..." autocomplete="off" autofocus><button>ENVIAR</button></form>
     </section>
-    <section class="notes"><div class="note">01 / O conteudo vem de <strong>conversations.txt</strong>.</div><div class="note">02 / A resposta informa quando alcanca o limite do conhecimento.</div><div class="note">03 / O modelo roda no servidor local, nao no navegador.</div></section>
+    <section class="notes"><div class="note">01 / O conteudo vem de <strong>conversations.txt</strong> e do indice local.</div><div class="note">02 / Use <strong>/ensinar</strong> para adicionar uma memoria pesquisavel.</div><div class="note">03 / O modelo roda no servidor, nao no navegador.</div></section>
   </main>
   <script>
     const form = document.querySelector('#form'); const input = document.querySelector('#prompt'); const messages = document.querySelector('#messages');

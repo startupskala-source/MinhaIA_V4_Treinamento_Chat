@@ -36,7 +36,7 @@ class DocumentStore:
         inserted = 0
         for content, source in chunks:
             content = content.strip()
-            if len(content) < 40:
+            if len(content) < 4:
                 continue
             batch.append((content, source))
             if len(batch) == batch_size:
@@ -73,6 +73,13 @@ class DocumentStore:
     def count(self) -> int:
         with self.lock:
             return self.connection.execute("SELECT count(*) FROM chunks").fetchone()[0]
+
+    def has_source(self, source: str) -> bool:
+        with self.lock:
+            row = self.connection.execute(
+                "SELECT 1 FROM chunks WHERE source = ? LIMIT 1", (source,)
+            ).fetchone()
+        return row is not None
 
 
 def chunk_file(path: Path, chunk_size: int = 1400, overlap: int = 220) -> Iterator[str]:
