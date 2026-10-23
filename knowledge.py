@@ -1,11 +1,14 @@
 import math
 import re
+import unicodedata
 from collections import Counter
 from pathlib import Path
 
 
 def words(text: str) -> list[str]:
-    return re.findall(r"[a-z0-9]+", text.lower())
+    normalized = unicodedata.normalize("NFKD", text.casefold())
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+    return re.findall(r"[a-z0-9]+", ascii_text)
 
 
 class KnowledgeBase:

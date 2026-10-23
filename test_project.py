@@ -48,6 +48,10 @@ class KnowledgeTests(unittest.TestCase):
         )
         self.assertEqual(knowledge.find("me explique machine learning")[0], "Machine learning aprende com exemplos.")
 
+    def test_matches_accented_question_to_ascii_training_data(self) -> None:
+        knowledge = KnowledgeBase([("ola", "Ola! Como posso ajudar?")])
+        self.assertEqual(knowledge.find("olá")[0], "Ola! Como posso ajudar?")
+
 
 class DocumentStoreTests(unittest.TestCase):
     def test_bm25_returns_relevant_disk_backed_chunk(self) -> None:
