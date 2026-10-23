@@ -8,6 +8,7 @@ from model import LocalTransformer, ModelConfig
 from conversation_store import ConversationStore
 from document_store import DocumentStore, chunk_text
 from import_wikipedia import clean_wikitext
+from github_publisher import teaching_key_matches
 from knowledge import KnowledgeBase
 from learning_store import LearningStore, extract_fact
 from storage import UsageStore
@@ -97,6 +98,11 @@ class LearningStoreTests(unittest.TestCase):
 
     def test_extracts_teaching_command_without_losing_first_letter(self) -> None:
         self.assertEqual(extract_fact("/ensinar Meu nome e Zeta."), "Meu nome e Zeta.")
+
+    def test_github_sync_requires_the_owner_key(self) -> None:
+        self.assertTrue(teaching_key_matches("segredo", "segredo"))
+        self.assertFalse(teaching_key_matches("errado", "segredo"))
+        self.assertFalse(teaching_key_matches(None, "segredo"))
 
 
 class WikipediaImportTests(unittest.TestCase):

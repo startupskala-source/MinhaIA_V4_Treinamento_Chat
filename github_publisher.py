@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import secrets
 import urllib.error
 import urllib.request
 from datetime import UTC, datetime
@@ -66,3 +67,7 @@ class GitHubPublisher:
                 return "", None
             raise
         return base64.b64decode(result["content"]).decode("utf-8"), result["sha"]
+
+
+def teaching_key_matches(provided: str | None, expected: str | None) -> bool:
+    return bool(provided and expected and secrets.compare_digest(provided, expected))

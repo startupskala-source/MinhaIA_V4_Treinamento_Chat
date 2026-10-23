@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -8,7 +9,7 @@ from pydantic import BaseModel
 from chat import load_model, respond
 from conversation_store import ConversationStore
 from document_store import DocumentStore
-from github_publisher import GitHubPublisher
+from github_publisher import GitHubPublisher, teaching_key_matches
 from knowledge import KnowledgeBase
 from learning_store import LearningStore, extract_fact
 from tokenizer import BPETokenizer
@@ -29,6 +30,7 @@ publisher = GitHubPublisher()
 class ChatMessage(BaseModel):
     message: str
     session_id: str = "anonymous"
+    learning_key: str | None = None
 
 
 @app.on_event("startup")
@@ -84,7 +86,7 @@ def chat(message: ChatMessage) -> dict[str, str]:
     previous_turns = conversations.history(message.session_id)
     fact = extract_fact(question)
     if fact is not None:
-        answer, source = teach(message.session_id, fact)
+        answer, source = teach(message.session_id, fact, message.learning_key)
     else:
         passages = documents.search(question, limit=5) if documents is not None else []
         learned_passages = [
@@ -105,7 +107,7 @@ def chat(message: ChatMessage) -> dict[str, str]:
     return {"answer": answer, "source": source, "session_id": message.session_id}
 
 
-def teach(session_id: str, fact: str) -> tuple[str, str]:
+def teach(session_id: str, fact: str, learning_key: str | None) -> tuple[str, str]:
     try:
         is_new = learning.remember(session_id, fact)
     except ValueError as error:
@@ -113,12 +115,17 @@ def teach(session_id: str, fact: str) -> tuple[str, str]:
     if not is_new:
         return "Eu ja tinha essa informacao na minha memoria.", "memoria local"
     documents.add_chunks([(fact, f"memory:{session_id}")])
-    try:
-        published_url = publisher.publish_fact(fact, session_id)
-    except Exception:
-        published_url = None
+    owner_key = os.getenv("TEACHING_KEY")
+    published_url = None
+    if publisher.enabled and teaching_key_matches(learning_key, owner_key):
+        try:
+            published_url = publisher.publish_fact(fact, session_id)
+        except Exception:
+            published_url = None
     if published_url:
         return "Aprendi e sincronizei esta memoria com o GitHub.", "memoria + GitHub"
+    if publisher.enabled:
+        return "Aprendi esta informacao localmente. A sincronizacao com GitHub exige a chave de proprietario.", "memoria local"
     return "Aprendi esta informacao na memoria local.", "memoria local"
 
 
