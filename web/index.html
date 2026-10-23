@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MinhaIA V4</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap');
+
+    :root { --ink: #142019; --paper: #f5f0e5; --acid: #c6ff30; --coral: #fc7054; --line: #26362b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper); font-family: "DM Mono", monospace; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .13; background-image: radial-gradient(var(--ink) .65px, transparent .65px); background-size: 5px 5px; }
+    main { width: min(100%, 1020px); margin: 0 auto; padding: 26px 20px 34px; position: relative; }
+    header { display: flex; justify-content: space-between; align-items: start; padding: 9px 0 36px; border-bottom: 3px solid var(--ink); }
+    .eyebrow, .status { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .status { background: var(--acid); padding: 7px 9px; border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+    h1 { margin: 31px 0 6px; max-width: 730px; font: 800 clamp(54px, 11vw, 120px)/.79 "Playfair Display", serif; letter-spacing: -.07em; }
+    h1 em { color: var(--coral); font-weight: 700; }
+    .intro { width: min(100%, 530px); margin: 23px 0 40px; font-size: 14px; line-height: 1.65; }
+    .chat { border: 3px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); background: #fffdf8; }
+    .chat-head { padding: 12px 15px; background: var(--ink); color: var(--paper); display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .08em; }
+    #messages { min-height: 310px; max-height: 52vh; overflow: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .message { max-width: 84%; padding: 13px 14px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; border: 2px solid var(--ink); animation: arrive .24s ease-out; }
+    .assistant { align-self: flex-start; background: var(--acid); border-radius: 0 13px 13px 13px; }
+    .user { align-self: flex-end; background: #ffe0d7; border-radius: 13px 0 13px 13px; }
+    .source { display: block; margin-top: 7px; font-size: 10px; opacity: .7; text-transform: uppercase; letter-spacing: .08em; }
+    form { border-top: 3px solid var(--ink); padding: 12px; display: flex; gap: 10px; }
+    input { min-width: 0; flex: 1; padding: 13px; background: transparent; border: 2px solid var(--ink); font: inherit; outline: none; }
+    input:focus { box-shadow: inset 0 -4px 0 var(--acid); }
+    button { color: var(--ink); background: var(--coral); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); padding: 0 18px; font: 500 12px "DM Mono", monospace; cursor: pointer; }
+    button:active { transform: translate(3px, 3px); box-shadow: none; }
+    .notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 33px; }
+    .note { border-top: 2px solid var(--ink); padding-top: 9px; font-size: 11px; line-height: 1.5; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 560px) { main { padding: 16px 14px 24px; } header { padding-bottom: 23px; } h1 { margin-top: 23px; } .notes { grid-template-columns: 1fr; gap: 5px; } .message { max-width: 94%; } button { padding: 0 12px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><span class="eyebrow">Projeto independente / V4</span><span class="status">local online</span></header>
+    <h1>Minha<em>IA</em><br>fala daqui.</h1>
+    <p class="intro">Uma IA local, treinada com dados editaveis. Pergunte sobre os assuntos presentes na base e acompanhe o crescimento dela a cada novo treinamento.</p>
+    <section class="chat" aria-label="Conversa com MinhaIA">
+      <div class="chat-head"><span>CANAL / CONHECIMENTO LOCAL</span><span>v4.0</span></div>
+      <div id="messages" aria-live="polite"><div class="message assistant">Ola. Fui treinada com uma base local. Em que posso ajudar?</div></div>
+      <form id="form"><input id="prompt" placeholder="Escreva sua pergunta..." autocomplete="off" autofocus><button>ENVIAR</button></form>
+    </section>
+    <section class="notes"><div class="note">01 / O conteudo vem de <strong>conversations.txt</strong>.</div><div class="note">02 / A resposta informa quando alcanca o limite do conhecimento.</div><div class="note">03 / O modelo roda no servidor local, nao no navegador.</div></section>
+  </main>
+  <script>
+    const form = document.querySelector('#form'); const input = document.querySelector('#prompt'); const messages = document.querySelector('#messages');
+    function add(text, type, source) { const node = document.createElement('div'); node.className = `message ${type}`; node.textContent = text; if (source) { const label = document.createElement('span'); label.className = 'source'; label.textContent = source; node.append(label); } messages.append(node); messages.scrollTop = messages.scrollHeight; }
+    form.addEventListener('submit', async (event) => { event.preventDefault(); const message = input.value.trim(); if (!message) return; add(message, 'user'); input.value = ''; input.disabled = true; try { const response = await fetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message}) }); const body = await response.json(); if (!response.ok) throw new Error(body.detail); add(body.answer, 'assistant', body.source); } catch (error) { add(`Erro: ${error.message}`, 'assistant', 'conexao'); } finally { input.disabled = false; input.focus(); } });
+  </script>
+</body>
+</html>
