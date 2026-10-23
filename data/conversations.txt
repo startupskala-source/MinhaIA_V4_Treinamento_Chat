@@ -1,0 +1,179 @@
+### USUARIO
+ola
+### ASSISTENTE
+Ola! Sou uma IA local treinada do zero com os dados deste projeto. Como posso ajudar?
+### FIM
+
+### USUARIO
+qual e o seu objetivo?
+### ASSISTENTE
+Meu objetivo e entender a intencao da conversa, responder com clareza e reconhecer meus limites quando os dados nao forem suficientes.
+### FIM
+
+### USUARIO
+o que e machine learning?
+### ASSISTENTE
+Machine learning e uma tecnica em que um algoritmo aprende padroes usando exemplos. Os dados, a arquitetura e a avaliacao determinam a qualidade do resultado.
+### FIM
+
+### USUARIO
+o que e um token?
+### ASSISTENTE
+Um token e uma unidade de texto usada pelo modelo. Nesta IA, o tokenizador aprende pedacos frequentes de texto com BPE e conta esses pedacos no limite de cada usuario.
+### FIM
+
+### USUARIO
+como voce aprende?
+### ASSISTENTE
+Durante o treinamento, eu recebo texto e tento prever o proximo token. O erro entre minha previsao e o texto correto ajusta os pesos da rede neural.
+### FIM
+
+### USUARIO
+voce sabe tudo?
+### ASSISTENTE
+Nao. Eu so posso aprender padroes presentes nos dados de treinamento e posso errar. Uma boa resposta precisa ser verificada quando a decisao for importante.
+### FIM
+
+### USUARIO
+como deixar uma IA melhor?
+### ASSISTENTE
+Comece com dados variados, corretos e bem organizados. Separe treino e validacao, acompanhe a perda, teste perguntas novas e corrija os exemplos que produzem respostas ruins.
+### FIM
+
+### USUARIO
+explique redes neurais
+### ASSISTENTE
+Uma rede neural e uma colecao de camadas com parametros ajustaveis. Cada camada transforma numeros e permite ao modelo aprender relacoes cada vez mais complexas.
+### FIM
+
+### USUARIO
+o que e um transformer?
+### ASSISTENTE
+Transformer e uma arquitetura de rede neural que usa atencao. A atencao permite comparar partes diferentes de uma sequencia e descobrir quais trechos importam para prever o proximo token.
+### FIM
+
+### USUARIO
+o que e atencao causal?
+### ASSISTENTE
+Atencao causal impede que o modelo veja tokens futuros durante o treinamento. Assim, para prever o proximo token, ele so usa o texto que veio antes.
+### FIM
+
+### USUARIO
+qual a diferenca entre treino e validacao?
+### ASSISTENTE
+Treino ajusta os pesos do modelo. Validacao mede se ele generaliza para textos que nao foram usados para ajustar esses pesos. Se o treino melhora e a validacao piora, pode haver sobreajuste.
+### FIM
+
+### USUARIO
+o que e sobreajuste?
+### ASSISTENTE
+Sobreajuste acontece quando o modelo decora detalhes do treino e perde capacidade de responder a exemplos novos. Mais dados, regularizacao e validacao ajudam a detectar esse problema.
+### FIM
+
+### USUARIO
+como funciona Python?
+### ASSISTENTE
+Python e uma linguagem de programacao legivel. Em IA, ela e usada para carregar dados, treinar redes neurais, avaliar modelos e construir interfaces.
+### FIM
+
+### USUARIO
+o que e uma funcao em Python?
+### ASSISTENTE
+Uma funcao e um bloco reutilizavel de codigo. Ela recebe entradas, executa uma tarefa e pode devolver uma saida.
+### FIM
+
+### USUARIO
+me mostre um plano para aprender IA
+### ASSISTENTE
+Primeiro aprenda Python e manipulacao de dados. Depois estude algebra linear, probabilidade, machine learning, redes neurais, avaliacao e projetos pequenos com dados reais.
+### FIM
+
+### USUARIO
+como verificar uma resposta?
+### ASSISTENTE
+Compare a resposta com fontes confiaveis, teste calculos e procure contraexemplos. Uma IA deve dizer quando nao tem confianca suficiente para responder.
+### FIM
+
+### USUARIO
+por que os dados importam?
+### ASSISTENTE
+O modelo aprende os padroes dos exemplos. Dados incompletos, repetitivos ou incorretos limitam a qualidade da IA, mesmo quando a arquitetura e maior.
+### FIM
+
+### USUARIO
+como adicionar conhecimento?
+### ASSISTENTE
+Adicione conversas e textos revisados ao arquivo de dados, mantendo o mesmo formato. Depois retreine e teste perguntas que nao estavam escritas exatamente nos exemplos.
+### FIM
+
+### USUARIO
+qual e a resposta para dois mais dois?
+### ASSISTENTE
+Dois mais dois e quatro.
+### FIM
+
+### USUARIO
+explique o raciocinio de dois mais dois
+### ASSISTENTE
+Se voce tem dois itens e junta mais dois itens, o total e quatro itens. Esse e um exemplo simples de soma.
+### FIM
+
+### USUARIO
+como resolver um problema dificil?
+### ASSISTENTE
+Divida o problema em partes pequenas, defina o que ja e conhecido, teste hipoteses e valide cada etapa. Se faltar informacao, deixe essa limitacao explicita.
+### FIM
+
+### USUARIO
+se nao souber uma resposta, o que deve fazer?
+### ASSISTENTE
+Devo dizer que nao tenho informacao suficiente, explicar o que falta e evitar inventar fatos. Honestidade sobre incerteza e mais util do que uma resposta confiante e errada.
+### FIM
+
+### USUARIO
+como faco uma pergunta melhor?
+### ASSISTENTE
+Descreva o objetivo, o contexto, restricoes e o resultado esperado. Perguntas especificas produzem respostas mais uteis e faceis de verificar.
+### FIM
+
+### USUARIO
+o que e uma API?
+### ASSISTENTE
+Uma API e uma interface que permite a programas trocarem dados e chamarem funcoes de forma definida. Ela costuma receber uma requisicao e devolver uma resposta estruturada.
+### FIM
+
+### USUARIO
+o que e banco de dados?
+### ASSISTENTE
+Banco de dados e um sistema para armazenar e consultar informacoes de forma organizada. Neste projeto, SQLite registra o consumo de tokens por usuario.
+### FIM
+
+### USUARIO
+como proteger dados de usuarios?
+### ASSISTENTE
+Colete apenas o necessario, proteja credenciais, limite acessos e nao exponha conversas ou dados pessoais em registros publicos.
+### FIM
+
+### USUARIO
+me de uma dica de programacao
+### ASSISTENTE
+Faca mudancas pequenas, teste depois de cada mudanca e leia a mensagem de erro inteira antes de tentar corrigir o codigo.
+### FIM
+
+### USUARIO
+por que testar codigo?
+### ASSISTENTE
+Testes verificam comportamentos importantes e evitam que uma correcao quebre outra parte do projeto. Eles oferecem evidencia, nao apenas confianca.
+### FIM
+
+### USUARIO
+como voce responde?
+### ASSISTENTE
+Eu recebo o historico da conversa, transformo o texto em tokens e gero um token por vez ate chegar ao marcador de fim ou ao limite permitido.
+### FIM
+
+### USUARIO
+qual a importancia da etica em IA?
+### ASSISTENTE
+Etica em IA ajuda a reduzir danos, vieses e uso indevido. Sistemas devem respeitar privacidade, seguranca, transparencia e responsabilidade humana.
+### FIM

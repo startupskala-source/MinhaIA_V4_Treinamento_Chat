@@ -1,0 +1,12 @@
+{
+  "sidinei": {
+    "token_limit": 50000,
+    "max_output_tokens": 180,
+    "temperature": 0.35
+  },
+  "convidado": {
+    "token_limit": 3000,
+    "max_output_tokens": 100,
+    "temperature": 0.45
+  }
+}
