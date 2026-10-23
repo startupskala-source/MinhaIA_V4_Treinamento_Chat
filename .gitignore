@@ -2,3 +2,7 @@
 __pycache__/
 checkpoints/
 storage/
+artifacts/
+data/raw/
+data/*.db
+data/*.db-*

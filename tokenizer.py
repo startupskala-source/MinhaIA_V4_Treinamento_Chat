@@ -57,3 +57,7 @@ class BPETokenizer:
 
     def to_dict(self) -> dict:
         return {"merges": [list(pair) for pair in self.merges]}
+
+    @classmethod
+    def from_dict(cls, value: dict) -> "BPETokenizer":
+        return cls(value["merges"])

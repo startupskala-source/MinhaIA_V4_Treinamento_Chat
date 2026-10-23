@@ -23,13 +23,14 @@ def load_model() -> tuple[LocalTransformer, BPETokenizer]:
     return model, BPETokenizer(**checkpoint["tokenizer"])
 
 
-def build_prompt(history: list[tuple[str, str]], message: str) -> str:
+def build_prompt(history: list[tuple[str, str]], message: str, context: str = "") -> str:
     recent_history = history[-3:]
+    prefix = f"### CONTEXTO\n{context}\n### FIM CONTEXTO\n\n" if context else ""
     prompt = "".join(
         f"### USUARIO\n{old_message}\n### ASSISTENTE\n{old_response}\n### FIM\n\n"
         for old_message, old_response in recent_history
     )
-    return prompt + f"### USUARIO\n{message}\n### ASSISTENTE\n"
+    return prefix + prompt + f"### USUARIO\n{message}\n### ASSISTENTE\n"
 
 
 def respond(
@@ -40,8 +41,9 @@ def respond(
     message: str,
     max_output_tokens: int,
     temperature: float,
+    context: str = "",
 ) -> tuple[str, int]:
-    prompt = build_prompt(history, message)
+    prompt = build_prompt(history, message, context)
     prompt_tokens = tokenizer.encode(prompt)
     match = knowledge.find(message)
     if match:
