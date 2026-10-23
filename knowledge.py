@@ -63,7 +63,7 @@ class KnowledgeBase:
             document_norm = math.sqrt(
                 sum((count * self.idf.get(term, 0)) ** 2 for term, count in document.items())
             )
-            score = dot / (query_norm * document_norm) if document_norm else 0.0
+            score = dot / (query_norm * document_norm) if query_norm and document_norm else 0.0
             if score > best_score:
                 best_answer, best_score = answer, score
         return (best_answer, best_score) if best_score >= 0.32 else None
