@@ -5,7 +5,9 @@ from pathlib import Path
 import torch
 
 from model import LocalTransformer, ModelConfig
-from document_store import DocumentStore
+from conversation_store import ConversationStore
+from document_store import DocumentStore, chunk_text
+from import_wikipedia import clean_wikitext
 from knowledge import KnowledgeBase
 from storage import UsageStore
 from tokenizer import BPETokenizer
@@ -65,6 +67,29 @@ class DocumentStoreTests(unittest.TestCase):
                 )
                 results = store.search("como machine learning aprende")
                 self.assertEqual(results[0]["source"], "ia.txt")
+
+    def test_chunks_keep_the_entire_text(self) -> None:
+        text = "abcde" * 100
+        chunks = list(chunk_text(text, chunk_size=100, overlap=20))
+        self.assertTrue(chunks)
+        self.assertTrue(chunks[0].startswith("abcde"))
+        self.assertTrue(chunks[-1].endswith("abcde"))
+
+
+class ConversationStoreTests(unittest.TestCase):
+    def test_persists_and_groups_chat_turns(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConversationStore(Path(directory) / "conversations.db")
+            store.add_turn("browser-1", "ola", "Ola! Como posso ajudar?")
+            self.assertEqual(store.history("browser-1"), [("ola", "Ola! Como posso ajudar?")])
+            self.assertEqual(store.entries("browser-1")[0]["role"], "user")
+            store.close()
+
+
+class WikipediaImportTests(unittest.TestCase):
+    def test_cleans_basic_wiki_markup(self) -> None:
+        text = "[[Python (linguagem)|Python]] usa {{linguagem}} <ref>fonte</ref>."
+        self.assertEqual(clean_wikitext(text), "Python usa .")
 
 
 if __name__ == "__main__":

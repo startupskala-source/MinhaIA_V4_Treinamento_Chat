@@ -1,5 +1,6 @@
 import re
 import sqlite3
+import threading
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
@@ -9,7 +10,8 @@ class DocumentStore:
 
     def __init__(self, database_path: Path):
         database_path.parent.mkdir(parents=True, exist_ok=True)
-        self.connection = sqlite3.connect(database_path)
+        self.connection = sqlite3.connect(database_path, check_same_thread=False)
+        self.lock = threading.Lock()
         self.connection.execute("PRAGMA journal_mode = WAL")
         self.connection.execute("PRAGMA synchronous = NORMAL")
         self.connection.execute(
@@ -38,13 +40,15 @@ class DocumentStore:
                 continue
             batch.append((content, source))
             if len(batch) == batch_size:
-                self.connection.executemany("INSERT INTO chunks (content, source) VALUES (?, ?)", batch)
-                self.connection.commit()
+                with self.lock:
+                    self.connection.executemany("INSERT INTO chunks (content, source) VALUES (?, ?)", batch)
+                    self.connection.commit()
                 inserted += len(batch)
                 batch.clear()
         if batch:
-            self.connection.executemany("INSERT INTO chunks (content, source) VALUES (?, ?)", batch)
-            self.connection.commit()
+            with self.lock:
+                self.connection.executemany("INSERT INTO chunks (content, source) VALUES (?, ?)", batch)
+                self.connection.commit()
             inserted += len(batch)
         return inserted
 
@@ -53,20 +57,22 @@ class DocumentStore:
         if not terms:
             return []
         query = " OR ".join(f'"{term}"' for term in terms)
-        rows = self.connection.execute(
-            """
-            SELECT content, source, bm25(chunks) AS score
-            FROM chunks
-            WHERE chunks MATCH ?
-            ORDER BY score
-            LIMIT ?
-            """,
-            (query, limit),
-        ).fetchall()
+        with self.lock:
+            rows = self.connection.execute(
+                """
+                SELECT content, source, bm25(chunks) AS score
+                FROM chunks
+                WHERE chunks MATCH ?
+                ORDER BY score
+                LIMIT ?
+                """,
+                (query, limit),
+            ).fetchall()
         return [{"content": row[0], "source": row[1], "score": row[2]} for row in rows]
 
     def count(self) -> int:
-        return self.connection.execute("SELECT count(*) FROM chunks").fetchone()[0]
+        with self.lock:
+            return self.connection.execute("SELECT count(*) FROM chunks").fetchone()[0]
 
 
 def chunk_file(path: Path, chunk_size: int = 1400, overlap: int = 220) -> Iterator[str]:
@@ -86,6 +92,22 @@ def chunk_file(path: Path, chunk_size: int = 1400, overlap: int = 220) -> Iterat
             carry = buffer
     if carry.strip():
         yield carry
+
+
+def chunk_text(text: str, chunk_size: int = 1400, overlap: int = 220) -> Iterator[str]:
+    if overlap >= chunk_size:
+        raise ValueError("overlap deve ser menor que chunk_size.")
+    start = 0
+    while start < len(text):
+        end = min(start + chunk_size, len(text))
+        if end < len(text):
+            split = text.rfind("\n", start, end)
+            if split > start + chunk_size // 2:
+                end = split
+        yield text[start:end]
+        if end == len(text):
+            break
+        start = end - overlap
 
 
 def source_chunks(paths: Iterable[Path], chunk_size: int, overlap: int) -> Iterator[tuple[str, str]]:

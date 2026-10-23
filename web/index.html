@@ -50,8 +50,11 @@
   </main>
   <script>
     const form = document.querySelector('#form'); const input = document.querySelector('#prompt'); const messages = document.querySelector('#messages');
+    const sessionId = localStorage.getItem('minhaia-session') || crypto.randomUUID(); localStorage.setItem('minhaia-session', sessionId);
     function add(text, type, source) { const node = document.createElement('div'); node.className = `message ${type}`; node.textContent = text; if (source) { const label = document.createElement('span'); label.className = 'source'; label.textContent = source; node.append(label); } messages.append(node); messages.scrollTop = messages.scrollHeight; }
-    form.addEventListener('submit', async (event) => { event.preventDefault(); const message = input.value.trim(); if (!message) return; add(message, 'user'); input.value = ''; input.disabled = true; try { const response = await fetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message}) }); const body = await response.json(); if (!response.ok) throw new Error(body.detail); add(body.answer, 'assistant', body.source); } catch (error) { add(`Erro: ${error.message}`, 'assistant', 'conexao'); } finally { input.disabled = false; input.focus(); } });
+    async function loadHistory() { const response = await fetch(`/api/history/${sessionId}`); const body = await response.json(); if (!body.messages.length) return; messages.innerHTML = ''; body.messages.forEach((entry) => add(entry.content, entry.role)); }
+    loadHistory().catch(() => {});
+    form.addEventListener('submit', async (event) => { event.preventDefault(); const message = input.value.trim(); if (!message) return; add(message, 'user'); input.value = ''; input.disabled = true; try { const response = await fetch('/api/chat', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({message, session_id: sessionId}) }); const body = await response.json(); if (!response.ok) throw new Error(body.detail); add(body.answer, 'assistant', body.source); } catch (error) { add(`Erro: ${error.message}`, 'assistant', 'conexao'); } finally { input.disabled = false; input.focus(); } });
   </script>
 </body>
 </html>
