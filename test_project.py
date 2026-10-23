@@ -10,6 +10,7 @@ from document_store import DocumentStore, chunk_text
 from import_wikipedia import clean_wikitext
 from github_publisher import teaching_key_matches
 from knowledge import KnowledgeBase
+from nvidia_client import NvidiaChat
 from learning_store import LearningStore, extract_fact
 from storage import UsageStore
 from tokenizer import BPETokenizer
@@ -103,6 +104,14 @@ class LearningStoreTests(unittest.TestCase):
         self.assertTrue(teaching_key_matches("segredo", "segredo"))
         self.assertFalse(teaching_key_matches("errado", "segredo"))
         self.assertFalse(teaching_key_matches(None, "segredo"))
+
+
+class NvidiaClientTests(unittest.TestCase):
+    def test_builds_portuguese_context_messages(self) -> None:
+        client = NvidiaChat()
+        messages = client.messages([("ola", "Ola!")], "explique IA", "IA aprende com dados.")
+        self.assertEqual(messages[-1], {"role": "user", "content": "explique IA"})
+        self.assertIn("IA aprende com dados.", messages[0]["content"])
 
 
 class WikipediaImportTests(unittest.TestCase):

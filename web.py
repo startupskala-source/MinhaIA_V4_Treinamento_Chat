@@ -12,6 +12,7 @@ from document_store import DocumentStore
 from github_publisher import GitHubPublisher, teaching_key_matches
 from knowledge import KnowledgeBase
 from learning_store import LearningStore, extract_fact
+from nvidia_client import NvidiaChat, NvidiaError
 from tokenizer import BPETokenizer
 
 ROOT = Path(__file__).parent
@@ -25,6 +26,7 @@ documents = None
 conversations = ConversationStore(ROOT / "storage" / "conversations.db")
 learning = LearningStore(ROOT / "storage" / "learning.db")
 publisher = GitHubPublisher()
+nvidia = NvidiaChat()
 
 
 class ChatMessage(BaseModel):
@@ -135,10 +137,20 @@ def answer_from_documents(
     if passages:
         context = "\n\n".join(passage["content"][:1200] for passage in passages)
         source = Path(str(passages[0]["source"])).name
+        if nvidia.enabled:
+            try:
+                return nvidia.complete(history, question, context), f"NVIDIA NIM + documento: {source}"
+            except NvidiaError:
+                pass
         if model is None:
             return f"Encontrei este trecho relevante:\n\n{passages[0]['content']}", f"documento local: {source}"
         answer, _ = respond(model, tokenizer, knowledge, history, question, 160, 0.35, context)
         return answer, f"modelo local + documento: {source}"
+    if nvidia.enabled:
+        try:
+            return nvidia.complete(history, question), "NVIDIA NIM"
+        except NvidiaError:
+            pass
     if model is None:
         return "Nao encontrei uma fonte local para essa pergunta ainda.", "base local"
 
